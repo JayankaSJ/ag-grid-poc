@@ -11,11 +11,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@glideapps/glide-data-grid": "^6.0.3",
+    "@tailwindcss/vite": "^4.0.17",
     "ag-grid-community": "^33.2.1",
     "ag-grid-react": "^33.2.1",
+    "lodash": "^4.17.21",
+    "marked": "^15.0.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.4.1"
+    "react-responsive-carousel": "^3.2.23",
+    "react-router-dom": "^7.4.1",
+    "tailwindcss": "^4.0.17"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

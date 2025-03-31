@@ -57,7 +57,6 @@ export const DropDownRenderer: CustomRenderer<DropdownCell> = {
 
   provideEditor: (p) => {
     return (props) => {
-      console.log("provideEditor", props);
       const { data } = props.value;
       const { value, options } = data;
 

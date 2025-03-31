@@ -25,7 +25,6 @@ export default function AgGridPOC() {
     };
   }, []);
 
-  console.log(colDefs);
   return (
     <div style={{ height: "100vh" }}>
       <AgGridReact

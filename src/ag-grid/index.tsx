@@ -3,8 +3,8 @@ import type { ColDef, ValueFormatterParams } from "ag-grid-community";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { ColumnInfo, useTemplateData } from "../template-data";
-import { dateFormatter, OptionsEditor } from "./editors";
-import { AssetsRenderer, OptionsRenderer } from "./renderers";
+import { dateFormatter } from "./editors";
+import { AssetsRenderer } from "./renderers";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 

@@ -206,7 +206,7 @@ export const rows = [
 
 export function useTemplateData(): {
   columns: ColumnInfo[];
-  rows: unknown[];
+  rows: Record<string, unknown>[];
 } {
   const columns = useMemo(() => {
     return Object.entries(columnsDefinitions).map(([key, value]) => {

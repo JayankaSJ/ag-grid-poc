@@ -1,5 +1,3 @@
-import React from "react";
-
 import type { CustomCellRendererProps } from "ag-grid-react";
 
 export function OptionsRenderer({ value }: CustomCellRendererProps) {

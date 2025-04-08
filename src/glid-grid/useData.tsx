@@ -1,9 +1,15 @@
-import { Item, GridCell, GridCellKind } from "@glideapps/glide-data-grid";
+import {
+  Item,
+  GridCell,
+  GridCellKind,
+  EditableGridCell,
+} from "@glideapps/glide-data-grid";
 import { useTemplateData } from "../template-data";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export function useData() {
   const { columns, rows } = useTranslatedData();
+  const [data, setData] = useState(rows);
 
   function getCellContent(cell: Item): GridCell {
     const [colIndex, rowIndex] = cell;
@@ -20,11 +26,24 @@ export function useData() {
     } as GridCell;
   }
 
+  const setCellValue = useCallback(
+    (cell: Item, newValue: EditableGridCell): void => {
+      const [colIndex, rowIndex] = cell;
+      setData((prevData) => {
+        const newData = [...prevData];
+        newData[rowIndex][colIndex] = newValue.data;
+        return newData;
+      });
+    },
+    []
+  );
+
   return {
     columns,
-    data: rows,
+    data,
 
     getCellContent,
+    setCellValue,
   };
 }
 

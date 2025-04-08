@@ -18,13 +18,15 @@ export type ColumnInfo = {
     | "boolean"
     | "integer"
     | "date"
-    | "assets";
+    | "assets"
+    | "multi-value";
   options?: unknown[];
   nullable: boolean;
   fixed?: "left" | "right";
   children?: ColumnInfo[];
   cellClassName?: string;
   headerClassName?: string;
+  expanded?: boolean;
   dependencyResolver?: (
     value: ColumnInfo,
     data: Record<string, unknown>
@@ -126,6 +128,44 @@ export const columnsDefinitions: ColumnInfoDefinition = {
       },
     ],
   },
+  "parent-column-group-collapsable": {
+    type: "text",
+    nullable: false,
+    headerClassName: "bg-green-300 text-center",
+    expanded: false,
+    children: [
+      {
+        key: "child-column-1",
+        label: "Child Column 1",
+        type: "text",
+        nullable: false,
+        headerClassName: "bg-green-200",
+        cellClassName: "bg-green-100",
+      },
+      {
+        key: "child-column-2",
+        label: "Child Column 2",
+        type: "text",
+        nullable: false,
+        headerClassName: "bg-green-200",
+        cellClassName: "bg-green-100",
+        expanded: false,
+      },
+      {
+        key: "child-column-2",
+        label: "Child Column 2",
+        type: "text",
+        nullable: false,
+        headerClassName: "bg-green-200",
+        cellClassName: "bg-green-100",
+        expanded: false,
+      },
+    ],
+  },
+  "multi-value-display": {
+    type: "multi-value",
+    nullable: false,
+  },
   "error-column": {
     type: "text",
     nullable: false,
@@ -187,20 +227,56 @@ export const columnsDefinitions: ColumnInfoDefinition = {
   },
 };
 
+const imageURLs = [
+  "https://fastly.picsum.photos/id/57/2448/3264.jpg?hmac=ewraXYesC6HuSEAJsg3Q80bXd1GyJTxekI05Xt9YjfQ",
+  "https://fastly.picsum.photos/id/60/1920/1200.jpg?hmac=fAMNjl4E_sG_WNUjdU39Kald5QAHQMh-_-TsIbbeDNI",
+  "https://fastly.picsum.photos/id/84/1280/848.jpg?hmac=YFRYDI4UsfbeTzI8ZakNOR98wVU7a-9a2tGF542539s",
+  "https://fastly.picsum.photos/id/89/4608/2592.jpg?hmac=G9E4z5RMJgMUjgTzeR4CFlORjvogsGtqFQozIRqugBk",
+];
+
+const getRandomAssets = () => {
+  const shuffled = [...imageURLs].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 4); // Get the first 4 shuffled URLs
+};
+
 export const rows = [
   {
+    "fixed-left": "sample EAN",
     [TEXT_CELL]: "This is a text cell",
     [BOOLEAN_CELL]: true,
     [INTEGER_CELL]: 123,
     [CURRENCY_CELL]: 123.45,
     [DATE_CELL]: new Date(),
     [OPTION_CELL]: "option 1",
-    "assets-column": [
-      "https://fastly.picsum.photos/id/57/2448/3264.jpg?hmac=ewraXYesC6HuSEAJsg3Q80bXd1GyJTxekI05Xt9YjfQ",
-      "https://fastly.picsum.photos/id/60/1920/1200.jpg?hmac=fAMNjl4E_sG_WNUjdU39Kald5QAHQMh-_-TsIbbeDNI",
-      "https://fastly.picsum.photos/id/84/1280/848.jpg?hmac=YFRYDI4UsfbeTzI8ZakNOR98wVU7a-9a2tGF542539s",
-      "https://fastly.picsum.photos/id/89/4608/2592.jpg?hmac=G9E4z5RMJgMUjgTzeR4CFlORjvogsGtqFQozIRqugBk",
-    ],
+    "assets-column": imageURLs,
+  },
+];
+
+for (let i = 0; i < 50; i++) {
+  rows.push({
+    "fixed-left": "sample EAN " + (i + 1),
+    [TEXT_CELL]: `This is text cell number ${i + 1}`,
+    [BOOLEAN_CELL]: Math.random() > 0.5, // Random true/false value
+    [INTEGER_CELL]: Math.floor(Math.random() * 1000), // Random integer between 0 and 999
+    [CURRENCY_CELL]: (Math.random() * 1000).toFixed(2), // Random currency value between 0 and 999.99
+    [DATE_CELL]: new Date(), // Current date
+    [OPTION_CELL]: `option ${Math.floor(Math.random() * 5) + 1}`, // Random option from 1 to 5
+    "assets-column": getRandomAssets(),
+  } as any);
+}
+
+rows[3]["multi-value-display"] = [
+  {
+    locale: "en-US",
+    value: "Hello in English",
+  },
+  {
+    locale: "fr-FR",
+    value: "Bonjour en Français",
+  },
+  {
+    locale: "es-ES",
+    value: "Hola en Español",
   },
 ];
 

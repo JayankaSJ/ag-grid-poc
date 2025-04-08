@@ -8,11 +8,13 @@ export default function GlideGridPOC() {
     data,
 
     getCellContent,
+    setCellValue,
   } = useData();
   return (
     <div>
       <DataEditor
         getCellContent={getCellContent}
+        onCellEdited={setCellValue}
         columns={columns}
         getCellsForSelection={true}
         onPaste={true}

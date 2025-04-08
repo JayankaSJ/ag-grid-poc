@@ -5,6 +5,8 @@ import { AgGridReact } from "ag-grid-react";
 import { ColumnInfo, useTemplateData } from "../template-data";
 import { dateFormatter } from "./editors";
 import { AssetsRenderer } from "./renderers";
+import { LocalePopupEditor } from "./LocaleInputEditor";
+import { LocaleRenderer } from "./LocaleInputRenderer";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -111,6 +113,14 @@ function translateColumnDefs(columns: ColumnInfo[]): ColDef[] {
           };
         }
         break;
+      case "multi-value": {
+        additionalParams = {
+          editable: true,
+          autoHeight: true,
+          cellRenderer: LocaleRenderer,
+          cellEditor: LocalePopupEditor,
+        };
+      }
     }
 
     const children = column.children || [];
@@ -118,6 +128,13 @@ function translateColumnDefs(columns: ColumnInfo[]): ColDef[] {
       additionalParams = {
         ...additionalParams,
         children: translateColumnDefs(children),
+      };
+    }
+
+    if (column.expanded !== undefined) {
+      additionalParams = {
+        ...additionalParams,
+        columnGroupShow: column.expanded ? "open" : "closed",
       };
     }
 

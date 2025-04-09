@@ -4,7 +4,10 @@ import GlideGridPOC from "./glid-grid";
 import LandingPage from "./landing-page";
 import { AgGridCommercialPOC } from "./ag-grid-commercial";
 
+// @ts-expect-error temporary fix
 import "./App.css";
+
+// @ts-expect-error temporary fix
 import "@glideapps/glide-data-grid/dist/index.css";
 
 export default function App() {

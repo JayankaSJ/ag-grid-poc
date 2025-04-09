@@ -10,7 +10,7 @@ import {
   MasterDetailModule,
 } from "ag-grid-enterprise";
 import { AgGridReact } from "ag-grid-react";
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useTemplateData } from "./template-data-improved";
 
 ModuleRegistry.registerModules([AllEnterpriseModule, MasterDetailModule]);
@@ -26,6 +26,7 @@ if (!licenseKey) {
 LicenseManager.setLicenseKey(licenseKey);
 
 export function AgGridCommercialPOC() {
+  const gridRef = useRef<AgGridReact<unknown>>(null);
   const { rowData, columnDefs } = useTemplateData();
   const defaultColDef = useMemo<ColDef>(() => {
     return {
@@ -54,14 +55,19 @@ export function AgGridCommercialPOC() {
     } as IDetailCellRendererParams<any, any>;
   }, []);
 
+  const onExport = useCallback(() => {
+    gridRef.current!.api.exportDataAsExcel();
+  }, [gridRef]);
+
   return (
     <div
       style={{ height: "100vh" }}
       className="ag-theme-alpine flex flex-col gap-4 p-4"
     >
-      <Header />
+      <Header onExport={onExport} />
       <div className="flex-grow gap-4">
         <AgGridReact
+          ref={gridRef}
           rowData={rowData}
           columnDefs={columnDefs}
           pagination={true}
@@ -77,7 +83,7 @@ export function AgGridCommercialPOC() {
   );
 }
 
-function Header() {
+function Header({ onExport }: { onExport: () => void }) {
   return (
     <div className="flex flex-row justify-between">
       <div>
@@ -87,7 +93,10 @@ function Header() {
         </p>
       </div>
       <div>
-        <button className="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer">
+        <button
+          className="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer"
+          onClick={onExport}
+        >
           Export to Excel
         </button>
       </div>
@@ -104,14 +113,14 @@ function ExtendedDetailCellRenderer({ data }: IDetailCellRendererParams) {
   return (
     <div className="ag-theme-alpine flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-4">
-        {parcel && <ParcelRenderer data={data} />}
+        {parcel && <ParcelRenderer />}
         {assets.length > 0 && <AssetsRenderer assets={assets} />}
       </div>
     </div>
   );
 }
 
-function ParcelRenderer({ data }: { data: any }) {
+function ParcelRenderer() {
   return (
     <div className="w-full flex flex-col bg-gray-50 border-1 border-gray-200 rounded-lg px-4 py-2">
       <div>No parcel data available</div>

@@ -114,6 +114,7 @@ export function useTemplateData(): {
                   return true;
                 },
               },
+              "autoSizeThis",
             ],
           },
           {

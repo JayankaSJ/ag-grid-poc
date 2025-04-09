@@ -9,7 +9,11 @@ import DataEditor, {
   CustomCell,
 } from "@glideapps/glide-data-grid";
 import { useCallback, useState } from "react";
+
+// @ts-expect-error temporary fix
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+
+// @ts-expect-error temporary fix
 import "@glideapps/glide-data-grid/dist/index.css";
 
 // Define the type for the mock data (2D array of strings)
@@ -57,7 +61,8 @@ const generateMockData = (numRows: number, numCols: number): MockData => {
 
 const useMockDataGenerator = (
   numRows: number = 50,
-  addRowMarker: boolean = false
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _: boolean = false
 ): UseMockDataGeneratorReturn => {
   const [data, setData] = useState<MockData>(generateMockData(numRows, 10)); // Default to 10 columns
 
@@ -172,7 +177,7 @@ const renderer: CustomRenderer<DropdownCell> = {
     return true;
   },
 
-  provideEditor: (p) => {
+  provideEditor: () => {
     return (props) => {
       const { data } = props.value;
       const { value, options } = data;

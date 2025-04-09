@@ -55,7 +55,7 @@ export const DropDownRenderer: CustomRenderer<DropdownCell> = {
     return true;
   },
 
-  provideEditor: (p) => {
+  provideEditor: () => {
     return (props) => {
       const { data } = props.value;
       const { value, options } = data;

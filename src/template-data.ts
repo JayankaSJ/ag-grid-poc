@@ -265,6 +265,7 @@ for (let i = 0; i < 50; i++) {
   } as any);
 }
 
+// @ts-expect-error temporary fix
 rows[3]["multi-value-display"] = [
   {
     locale: "en-US",

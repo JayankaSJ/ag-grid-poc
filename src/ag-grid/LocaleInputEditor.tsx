@@ -1,5 +1,5 @@
 import { CustomCellEditorProps } from "ag-grid-react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 // Define the types for the props
 type LocalePopupEditorProps = CustomCellEditorProps & {

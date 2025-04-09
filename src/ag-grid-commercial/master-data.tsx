@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  StrictMode,
-  useEffect,
-} from "react";
-import { createRoot } from "react-dom/client";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react";
 import {
   ClientSideRowModelModule,
@@ -104,6 +96,7 @@ const getRows = (params: ProcessRowGroupForExportParams) => {
       ],
     },
   ].concat(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...params.node.data.callRecords.map((record: any) => [
       {
         outlineLevel: 1,
@@ -154,7 +147,8 @@ export const GridExampleMasterData = () => {
       fileName: "ag-grid.xlsx",
     };
   }, []);
-  const [columnDefs, setColumnDefs] = useState<ColDef[]>([
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [columnDefs, _] = useState<ColDef[]>([
     // group cell renderer needed for expand / collapse icons
     { field: "name", cellRenderer: "agGroupCellRenderer" },
     { field: "account" },

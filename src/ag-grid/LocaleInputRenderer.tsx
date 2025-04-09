@@ -8,7 +8,7 @@ export function LocaleRenderer(props: any) {
   return (
     <div className="p-[2px] rounded-lg">
       <div className="flex flex-col flex-wrap gap-2">
-        {values?.map((item: any, index) => (
+        {values?.map((item: any, index: number) => (
           <div
             key={index}
             className="flex items-center gap-2 px-2 rounded-md bg-gray-100 h-[20px]"

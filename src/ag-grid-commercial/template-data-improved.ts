@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ColDef, ColGroupDef, IProvidedFilterParams } from "ag-grid-community";
+import { ColDef, ColGroupDef } from "ag-grid-community";
 
 function columnDataTranslation(
   column: ColDef | ColGroupDef | any
@@ -169,8 +169,6 @@ export function useTemplateData(): {
   const [rowData, setRowData] = useState(rows);
 
   const columnDefs = useMemo(() => {
-    const defaultFilterParams: IProvidedFilterParams = { readOnly: true };
-
     const columns: (ColDef | ColGroupDef)[] = [
       {
         headerName: "Medal Details",

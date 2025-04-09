@@ -100,7 +100,7 @@ export function AgGridCommercialPOC() {
 function Filters({
   gridRef,
 }: {
-  gridRef: React.RefObject<AgGridReact<unknown>>;
+  gridRef: React.RefObject<AgGridReact<unknown> | null>;
 }) {
   const filter1 = useCallback(async () => {
     // const artikelEan = gridRef.current!.api.getColumn("artikelEan");

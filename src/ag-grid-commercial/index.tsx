@@ -35,7 +35,7 @@ export function AgGridCommercialPOC() {
       suppressMovable: true,
       suppressAutoSize: true,
       suppressHeaderContextMenu: true,
-      suppressHeaderMenuButton: true,
+      // suppressHeaderMenuButton: true,
     };
   }, []);
 
@@ -49,51 +49,86 @@ export function AgGridCommercialPOC() {
       },
       getDetailRowData: (params) => {
         const assets = params.data.assets as unknown[];
-        console.log("assets", assets);
         params.successCallback(assets);
       },
     } as IDetailCellRendererParams<any, any>;
   }, []);
 
   return (
-    <div style={{ height: "100vh" }}>
-      <AgGridReact
-        rowData={rowData}
-        columnDefs={columnDefs}
-        pagination={true}
-        defaultColDef={defaultColDef}
-        cellSelection={true}
-        copyHeadersToClipboard={false}
-        masterDetail={true}
-        detailCellRendererParams={detailCellRendererParams}
-        detailCellRenderer={ExtendedDetailCellRenderer}
-      />
+    <div
+      style={{ height: "100vh" }}
+      className="ag-theme-alpine flex flex-col gap-4 p-4"
+    >
+      <Header />
+      <div className="flex-grow gap-4">
+        <AgGridReact
+          rowData={rowData}
+          columnDefs={columnDefs}
+          pagination={true}
+          defaultColDef={defaultColDef}
+          cellSelection={true}
+          copyHeadersToClipboard={false}
+          masterDetail={true}
+          detailCellRendererParams={detailCellRendererParams}
+          detailCellRenderer={ExtendedDetailCellRenderer}
+        />
+      </div>
+    </div>
+  );
+}
+
+function Header() {
+  return (
+    <div className="flex flex-row justify-between">
+      <div>
+        <h1 className="text-2xl font-bold">AG Grid Commercial POC</h1>
+        <p className="text-sm text-gray-500">
+          This is a proof of concept for AG Grid Commercial features.
+        </p>
+      </div>
+      <div>
+        <button className="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer">
+          Export to Excel
+        </button>
+      </div>
     </div>
   );
 }
 
 function ExtendedDetailCellRenderer({ data }: IDetailCellRendererParams) {
+  const { assets, parcel } = useMemo(() => {
+    const assets = data.assets || [];
+    const parcel = data.parcel || {};
+    return { assets, parcel };
+  }, [data]);
   return (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div>
-        <p>Assets:</p>
-        <ul>
-          {data.assets.map((asset: any, index: number) => (
-            <img
-              key={index}
-              src={asset}
-              alt={`Asset ${index}`}
-              style={{ width: "100px", height: "100px" }}
-            />
-          ))}
-        </ul>
+    <div className="ag-theme-alpine flex flex-col gap-4 p-4">
+      <div className="flex flex-col gap-4">
+        {parcel && <ParcelRenderer data={data} />}
+        {assets.length > 0 && <AssetsRenderer assets={assets} />}
+      </div>
+    </div>
+  );
+}
+
+function ParcelRenderer({ data }: { data: any }) {
+  return (
+    <div className="w-full flex flex-col bg-gray-50 border-1 border-gray-200 rounded-lg px-4 py-2">
+      <div>No parcel data available</div>
+    </div>
+  );
+}
+
+function AssetsRenderer({ assets }: { assets: string[] }) {
+  return (
+    <div className="w-full flex flex-col bg-gray-50 border-1 border-gray-200 rounded-lg px-4 py-2">
+      <h3>Assets</h3>
+      <div className="flex flex-row flex-wrap gap-4 p-4">
+        {assets.map((asset, index) => (
+          <div>
+            <img src={asset} alt={`Asset ${index}`} className="h-[100px]" />
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -32,6 +32,20 @@ const assets = [
   "https://cdn1.home24.net/images/media/catalog/product/original/png/-/1/-1000368996-240408-020-MOOD-DETAILS-P000000001000368996-mood.webp",
 ];
 
+function getRandomizedAssets(): string[] {
+  const randomAssets: string[] = [];
+  const randomCount = Math.floor(Math.random() * assets.length) + 1;
+  const randomIndices = new Set<number>();
+  while (randomIndices.size < randomCount) {
+    const randomIndex = Math.floor(Math.random() * assets.length);
+    randomIndices.add(randomIndex);
+  }
+  randomIndices.forEach((index) => {
+    randomAssets.push(assets[index]);
+  });
+  return randomAssets as string[];
+}
+
 export const rows = [
   {
     lieferantenGlnIl: "1234567890123",
@@ -47,6 +61,41 @@ export const rows = [
     einkaufspreisStrecke: "90.00",
     eigenversandfahig: "Ja",
     selfsenderkostenDe: "10.00",
+
+    selfsenderkostenFr: "10.00",
+    selfsenderkostenNl: "10.00",
+    selfsenderkostenAt: "10.00",
+    selfsenderkostenCh: "10.00",
+    selfsenderkostenBe: "10.00",
+    selfsenderkostenIt: "10.00",
+    artMindesbestellmenge: "1",
+    wertMindestbestellmengeWert: "100.00",
+    warungMindestbestellwert: "EUR",
+    anzahlTeileImSet: "1",
+    bereitstellungszeitTage: "1",
+    serialnummernpflichtig: "Ja",
+    warengruppe1: "Warengruppe 1",
+    warengruppe2: "Warengruppe 2",
+    warengruppe3: "Warengruppe 3",
+    warengruppe4: "Warengruppe 4",
+    zimmertyp: "Zimmertyp",
+    typTextil: "Typ Textil",
+    typMöbelzubehör: "Typ Möbelzubehör",
+    Marke: "Marke",
+    Serie: "Serie",
+    Designer: "Designer",
+    herstellergarantieJahre: "2",
+    lieferumfang: "Lieferumfang",
+    lieferzustand: "Lieferzustand",
+    ersatzteileLieferbar: "Ja",
+    pflegehinweis: "Pflegehinweis",
+    montage: "Montage",
+    warnhinweiseSicherheitsinformationenZBFürKinder:
+      "Warnhinweise & Sicherheitsinformationen (z.B. für Kinder)",
+    "zertifikateZBGSCE TÜV": "Zertifikate (z.B. GS, CE, TÜV)",
+    "prüfinstitutZBTÜV RheinlandSGS Intertek":
+      "Prüfinstitut (z.B. TÜV Rheinland, SGS, Intertek)",
+
     assets,
   },
 ];
@@ -72,7 +121,40 @@ for (let i = 0; i < 100; i++) {
     einkaufspreisStrecke: "90.00",
     eigenversandfahig: "Ja",
     selfsenderkostenDe: "10.00",
-    assets,
+
+    selfsenderkostenFr: "10.00",
+    selfsenderkostenNl: "10.00",
+    selfsenderkostenAt: "10.00",
+    selfsenderkostenCh: "10.00",
+    selfsenderkostenBe: "10.00",
+    selfsenderkostenIt: "10.00",
+    artMindesbestellmenge: "1",
+    wertMindestbestellmengeWert: "100.00",
+    warungMindestbestellwert: "EUR",
+    anzahlTeileImSet: "1",
+    bereitstellungszeitTage: "1",
+    serialnummernpflichtig: "Ja",
+    warengruppe1: `Warengruppe 1 ${i}`,
+    warengruppe2: `Warengruppe 2 ${i}`,
+    warengruppe3: `Warengruppe 3 ${i}`,
+    warengruppe4: `Warengruppe 4 ${i}`,
+    zimmertyp: `Zimmertyp ${i}`,
+    typTextil: `Typ Textil ${i}`,
+    typMöbelzubehör: `Typ Möbelzubehör ${i}`,
+    Marke: `Marke ${i}`,
+    Serie: `Serie ${i}`,
+    Designer: `Designer ${i}`,
+    herstellergarantieJahre: `${i}`,
+    lieferumfang: `Lieferumfang ${i}`,
+    lieferzustand: `Lieferzustand ${i}`,
+    ersatzteileLieferbar: "Ja",
+    pflegehinweis: `Pflegehinweis ${i}`,
+    montage: `Montage ${i}`,
+    warnhinweiseSicherheitsinformationenZBFürKinder: `Warnhinweise & Sicherheitsinformationen (z.B. für Kinder) ${i}`,
+    "zertifikateZBGSCE TÜV": `Zertifikate (z.B. GS, CE, TÜV) ${i}`,
+    "prüfinstitutZBTÜV RheinlandSGS Intertek": `Prüfinstitut (z.B. TÜV Rheinland, SGS, Intertek) ${i}`,
+
+    assets: getRandomizedAssets(),
   });
 }
 

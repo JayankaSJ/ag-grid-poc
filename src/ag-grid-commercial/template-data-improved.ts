@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ColDef, ColGroupDef } from "ag-grid-community";
+import { ColDef, ColGroupDef, IProvidedFilterParams } from "ag-grid-community";
 
 function columnDataTranslation(
   column: ColDef | ColGroupDef | any
@@ -102,16 +102,20 @@ export const rows = [
 
 for (let i = 0; i < 100; i++) {
   let lieferantenGlnIl = `1234567890123${i}`;
+  let artikelEan = `1234567890123${i}`;
 
   if (Math.random() > 0.5) {
     lieferantenGlnIl = "";
+  }
+  if (Math.random() > 0.5) {
+    artikelEan = "";
   }
 
   rows.push({
     lieferantenGlnIl,
     artikelnummer: `1234567890${i}`,
     artikelname: `Test Artikel ${i}`,
-    artikelEan: `1234567890123${i}`,
+    artikelEan,
     uvp: `10${i}.00`,
     bestellwahrungLager: "EUR",
     einkaufspreisLager: "90.00",
@@ -165,6 +169,8 @@ export function useTemplateData(): {
   const [rowData, setRowData] = useState(rows);
 
   const columnDefs = useMemo(() => {
+    const defaultFilterParams: IProvidedFilterParams = { readOnly: true };
+
     const columns: (ColDef | ColGroupDef)[] = [
       {
         headerName: "Medal Details",
@@ -177,6 +183,7 @@ export function useTemplateData(): {
             pinned: "left",
             width: 170,
             cellRenderer: "agGroupCellRenderer",
+            sortable: true,
             mainMenuItems: [
               {
                 name: "Apply 'Keine GLN vorhanden' for empty",
@@ -220,6 +227,30 @@ export function useTemplateData(): {
             field: "artikelEan",
             type: "text",
             editable: true,
+            sortable: true,
+            filter: "agSetColumnFilter",
+            // filterParams: defaultFilterParams,
+            mainMenuItems: [
+              {
+                name: "Apply 'Keine EAN vorhanden' for empty",
+                action: () => {
+                  setRowData((prevRowData) => {
+                    const newRowData = [...prevRowData];
+                    return newRowData.map((row) => {
+                      if (row.artikelEan === "") {
+                        return {
+                          ...row,
+                          artikelEan: "Keine EAN vorhanden",
+                        };
+                      }
+                      return row;
+                    });
+                  });
+                  return true;
+                },
+              },
+              "autoSizeThis",
+            ],
           },
           {
             headerName: "UVP",

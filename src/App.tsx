@@ -35,7 +35,7 @@ function Router() {
       element: <GlideGridPOC />,
     },
     {
-      path: "/glide-grid-commercial",
+      path: "/ag-grid-commercial",
       element: <AgGridCommercialPOC />,
     },
   ]);

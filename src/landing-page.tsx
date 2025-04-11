@@ -25,7 +25,7 @@ export default function LandingPage() {
           Show Ag Grid
         </button>
         <button
-          onClick={() => navigate("/glide-grid-commercial")}
+          onClick={() => navigate("/ag-grid-commercial")}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
           Show Ag Grid Commercial

@@ -1,27 +1,85 @@
 import { useMemo, useState } from "react";
-import { ColDef, ColGroupDef } from "ag-grid-community";
+import {
+  ColDef,
+  ColGroupDef,
+  DefaultMenuItem,
+  GetMainMenuItems,
+  ICellEditorParams,
+  MenuItemDef,
+} from "ag-grid-community";
+import { MainImageCellRenderer } from "./renderers/MainImageCellRenderer";
 
-function columnDataTranslation(
-  column: ColDef | ColGroupDef | any
-): ColDef | ColGroupDef {
-  if (
-    column.mainMenuItems &&
-    Array.isArray(column.mainMenuItems) &&
-    column.mainMenuItems.length > 0
-  ) {
-    // empty
-  } else {
-    column.suppressHeaderMenuButton = true;
-    column.suppressHeaderFilterButton = true;
-    column.suppressHeaderContextMenu = true;
-  }
-  if ((column as ColGroupDef).children) {
-    (column as ColGroupDef).children.forEach((child) => {
-      columnDataTranslation(child);
-    });
-  }
-  return column;
-}
+type ColumnType = ColDef | ColGroupDef;
+type ColumnDefinitionType = {
+  key?: number;
+  type?: string;
+  filter?: unknown;
+  description?: string;
+  children?: ColumnDefinitionType[];
+  mainMenuItems?: ColumnMenuItemType;
+  mainImage?: string;
+};
+type ColumnMenuItemType<TData = unknown> =
+  | (DefaultMenuItem | MenuItemDef<TData>)[]
+  | GetMainMenuItems<TData>;
+
+const defaultColumnMenuItems: ColumnMenuItemType = [
+  "autoSizeAll",
+  "autoSizeThis",
+];
+
+export const parcelColumnDefinitions = [
+  // {
+  //   key: 601,
+  //   description: "Total number of packages",
+  // },
+  {
+    key: 602,
+    description: "Package Indication",
+  },
+  {
+    key: 603,
+    description: "Frequency of this type of package",
+  },
+  {
+    key: 604,
+    description: "Package EAN",
+  },
+  {
+    key: 605,
+    description: "Length of package (cm)",
+  },
+  {
+    key: 606,
+    description: "c",
+  },
+  {
+    key: 607,
+    description: "Height of package (cm)",
+  },
+  {
+    key: 608,
+    description: "Package gross weight (kg)",
+  },
+  {
+    key: 609,
+    description: "Package net weight (kg)",
+  },
+  {
+    key: 610,
+    description: "Package form",
+  },
+  {
+    key: 611,
+    description: "Type overpack",
+  },
+];
+
+const mainImages = [
+  "https://cdn1.home24.net/images/media/catalog/product/1150x1150/png/-/1/-1000009867-180704-11253801-IMAGE-P000000001000009867.avif",
+  "https://cdn1.home24.net/images/media/catalog/product/original/jpg/2/0/209745b3a35842f2bde66b7f3fb269f2.webp",
+  "https://cdn1.home24.net/images/media/catalog/product/1150x1150/png/-/1/-1000449555-241009-010-IMAGE-P000000001000449555.avif",
+];
 
 const assets = [
   "https://cdn1.home24.net/images/media/catalog/product/1700x1700/png/-/1/-1000337296-220304-031-DETAILS-P000000001000337296.avif",
@@ -30,204 +88,285 @@ const assets = [
   "https://cdn1.home24.net/images/media/catalog/product/original/png/-/1/-1000383263-230418-020-MOOD-DETAILS-P000000001000383263-mood.webp",
   "https://cdn1.home24.net/images/media/catalog/product/original/png/-/1/-1000368996-221108-010-IMAGE-P000000001000368996.webp",
   "https://cdn1.home24.net/images/media/catalog/product/original/png/-/1/-1000368996-240408-020-MOOD-DETAILS-P000000001000368996-mood.webp",
+  "https://cdn1.home24.net/images/media/catalog/product/1700x1700/png/d/r/drehtuerenschrank-hildesheim-alpinweiss-ohne-spiegeltuer-en-4842908.avif",
+  "https://cdn1.home24.net/images/media/catalog/product/1700x1700/png/-/1/-1000121611-220909-600-ICON-DETAILS-P000000001000121611-icon-seal.avif",
+  "https://cdn1.home24.net/images/media/catalog/product/1700x1700/jpg/a/5/a5ce4669c0c841da8a1d81824398d3e7.avif",
+  "https://cdn1.home24.net/images/media/catalog/product/1700x1700/jpg/a/4/a492b6c0edb849b6bdffd8b4892018cc.avif",
+  "https://cdn1.home24.net/images/media/catalog/product/1700x1700/png/-/1/-1000123836-190916-13150900017-DETAILS-P000000001000123836.avif",
+  "https://cdn1.home24.net/images/media/catalog/product/1700x1700/png/-/1/-1000123836-190916-13150900021-DETAILS-P000000001000123836.avif",
+  ...mainImages,
 ];
 
-function getRandomizedAssets(): string[] {
-  const randomAssets: string[] = [];
-  const randomCount = Math.floor(Math.random() * assets.length) + 1;
-  const randomIndices = new Set<number>();
-  while (randomIndices.size < randomCount) {
-    const randomIndex = Math.floor(Math.random() * assets.length);
-    randomIndices.add(randomIndex);
-  }
-  randomIndices.forEach((index) => {
-    randomAssets.push(assets[index]);
-  });
-  return randomAssets as string[];
+function getRandomMainImage() {
+  const randomIndex = Math.floor(Math.random() * mainImages.length);
+  return mainImages[randomIndex];
 }
 
-export const rows = [
-  {
-    lieferantenGlnIl: "1234567890123",
-    artikelnummer: "1234567890",
-    artikelname: "Test Artikel",
-    artikelEan: "1234567890123",
-    uvp: "100.00",
-    bestellwahrungLager: "EUR",
-    einkaufspreisLager: "90.00",
-    bestellwahrungKundeneinzelbestellung: "EUR",
-    einkaufspreisKundeneinzelbestellung: "90.00",
-    bestellwahrungStrecke: "EUR",
-    einkaufspreisStrecke: "90.00",
-    eigenversandfahig: "Ja",
-    selfsenderkostenDe: "10.00",
+function translateColumnDefinition(column: ColumnDefinitionType): ColumnType {
+  const { key, description, type, filter, mainMenuItems, ...rest } = column;
+  const children = column?.children?.map(translateColumnDefinition);
 
-    selfsenderkostenFr: "10.00",
-    selfsenderkostenNl: "10.00",
-    selfsenderkostenAt: "10.00",
-    selfsenderkostenCh: "10.00",
-    selfsenderkostenBe: "10.00",
-    selfsenderkostenIt: "10.00",
-    artMindesbestellmenge: "1",
-    wertMindestbestellmengeWert: "100.00",
-    warungMindestbestellwert: "EUR",
-    anzahlTeileImSet: "1",
-    bereitstellungszeitTage: "1",
-    serialnummernpflichtig: "Ja",
-    warengruppe1: "Warengruppe 1",
-    warengruppe2: "Warengruppe 2",
-    warengruppe3: "Warengruppe 3",
-    warengruppe4: "Warengruppe 4",
-    zimmertyp: "Zimmertyp",
-    typTextil: "Typ Textil",
-    typMöbelzubehör: "Typ Möbelzubehör",
-    Marke: "Marke",
-    Serie: "Serie",
-    Designer: "Designer",
-    herstellergarantieJahre: "2",
-    lieferumfang: "Lieferumfang",
-    lieferzustand: "Lieferzustand",
-    ersatzteileLieferbar: "Ja",
-    pflegehinweis: "Pflegehinweis",
-    montage: "Montage",
-    warnhinweiseSicherheitsinformationenZBFürKinder:
-      "Warnhinweise & Sicherheitsinformationen (z.B. für Kinder)",
-    "zertifikateZBGSCE TÜV": "Zertifikate (z.B. GS, CE, TÜV)",
-    "prüfinstitutZBTÜV RheinlandSGS Intertek":
-      "Prüfinstitut (z.B. TÜV Rheinland, SGS, Intertek)",
-
-    assets,
-  },
-];
-
-for (let i = 0; i < 100; i++) {
-  let lieferantenGlnIl = `1234567890123${i}`;
-  let artikelEan = `1234567890123${i}`;
-
-  if (Math.random() > 0.5) {
-    lieferantenGlnIl = "";
-  }
-  if (Math.random() > 0.5) {
-    artikelEan = "";
+  let columnMenuItems = defaultColumnMenuItems as unknown[];
+  if (Array.isArray(mainMenuItems)) {
+    columnMenuItems = [...columnMenuItems, ...mainMenuItems];
   }
 
-  rows.push({
-    lieferantenGlnIl,
-    artikelnummer: `1234567890${i}`,
-    artikelname: `Test Artikel ${i}`,
-    artikelEan,
-    uvp: `10${i}.00`,
-    bestellwahrungLager: "EUR",
-    einkaufspreisLager: "90.00",
-    bestellwahrungKundeneinzelbestellung: "EUR",
-    einkaufspreisKundeneinzelbestellung: "90.00",
-    bestellwahrungStrecke: "EUR",
-    einkaufspreisStrecke: "90.00",
-    eigenversandfahig: "Ja",
-    selfsenderkostenDe: "10.00",
+  const additionalParams: Record<string, unknown> = {};
+  switch (type) {
+    case "option":
+      {
+        additionalParams["cellEditor"] = "agSelectCellEditor";
+        additionalParams["cellEditorParams"] = (params: ICellEditorParams) => {
+          const colDef = params?.colDef as {
+            options: { value: string; label: string }[];
+          };
+          const values = colDef?.options || [];
+          return {
+            values: values.map((option) => option.label),
+          };
+        };
+      }
+      break;
+  }
 
-    selfsenderkostenFr: "10.00",
-    selfsenderkostenNl: "10.00",
-    selfsenderkostenAt: "10.00",
-    selfsenderkostenCh: "10.00",
-    selfsenderkostenBe: "10.00",
-    selfsenderkostenIt: "10.00",
-    artMindesbestellmenge: "1",
-    wertMindestbestellmengeWert: "100.00",
-    warungMindestbestellwert: "EUR",
-    anzahlTeileImSet: "1",
-    bereitstellungszeitTage: "1",
-    serialnummernpflichtig: "Ja",
-    warengruppe1: `Warengruppe 1 ${i}`,
-    warengruppe2: `Warengruppe 2 ${i}`,
-    warengruppe3: `Warengruppe 3 ${i}`,
-    warengruppe4: `Warengruppe 4 ${i}`,
-    zimmertyp: `Zimmertyp ${i}`,
-    typTextil: `Typ Textil ${i}`,
-    typMöbelzubehör: `Typ Möbelzubehör ${i}`,
-    Marke: `Marke ${i}`,
-    Serie: `Serie ${i}`,
-    Designer: `Designer ${i}`,
-    herstellergarantieJahre: `${i}`,
-    lieferumfang: `Lieferumfang ${i}`,
-    lieferzustand: `Lieferzustand ${i}`,
-    ersatzteileLieferbar: "Ja",
-    pflegehinweis: `Pflegehinweis ${i}`,
-    montage: `Montage ${i}`,
-    warnhinweiseSicherheitsinformationenZBFürKinder: `Warnhinweise & Sicherheitsinformationen (z.B. für Kinder) ${i}`,
-    "zertifikateZBGSCE TÜV": `Zertifikate (z.B. GS, CE, TÜV) ${i}`,
-    "prüfinstitutZBTÜV RheinlandSGS Intertek": `Prüfinstitut (z.B. TÜV Rheinland, SGS, Intertek) ${i}`,
+  if (typeof filter === "string") {
+    additionalParams["filter"] = filter;
+  } else if (filter === undefined) {
+    additionalParams["filter"] = true;
+  }
 
-    assets: getRandomizedAssets(),
-  });
+  return {
+    ...rest,
+    ...additionalParams,
+    headerName: description,
+    field: key?.toString(),
+    mainMenuItems: columnMenuItems as ColumnMenuItemType,
+    children,
+  };
+}
+
+export function translateColumnDefinitions(
+  columns: ColumnDefinitionType[]
+): ColumnType[] {
+  return columns.map(translateColumnDefinition);
+}
+
+function createRandomParcels(count: number) {
+  const parcels = [];
+  for (let i = 0; i < count; i++) {
+    parcels.push({
+      ...parcelColumnDefinitions.reduce((acc, col) => {
+        switch (col.key) {
+          case 602:
+            acc[col.key] = `Parcel ${i + 1}`;
+            break;
+          case 603:
+            acc[col.key] = `${Math.floor(Math.random() * 100) + 1} pcs`;
+            break;
+          case 604:
+            acc[col.key] = `EAN-${Math.floor(Math.random() * 1000000)}`;
+            break;
+          case 605:
+            acc[col.key] = Math.floor(Math.random() * 100) + 1;
+            break;
+          case 606:
+            acc[col.key] = Math.floor(Math.random() * 100) + 1;
+            break;
+          case 607:
+            acc[col.key] = Math.floor(Math.random() * 100) + 1;
+            break;
+          case 608:
+            acc[col.key] = Math.floor(Math.random() * 100) + 1;
+            break;
+          case 609:
+            acc[col.key] = "Box";
+            break;
+          case 610:
+            acc[col.key] = "Standard";
+            break;
+          case 611:
+            acc[col.key] = "None";
+            break;
+          default:
+            acc[col.key] = "";
+            break;
+        }
+        return acc;
+      }, {} as Record<string, unknown>),
+    });
+  }
+  return parcels;
+}
+
+function createDataRows() {
+  const sampleDataRow: Record<string, unknown> = {
+    "2": "72102080L0326-090200",
+    "29": "Massage chair A20",
+    "3": "2010003611705",
+    "4": 234.0,
+    "5": "USD",
+    "6": 32.0,
+    "7": "USD",
+    "8": 43.0,
+    "9": 64.0,
+    "10": "No",
+    "11": "Min order qty for items",
+    "12": 10.0,
+    "13": "USD",
+    "14": "2 parts",
+    "15": 5,
+    "16": "Yes",
+    "17": "DDP",
+    "18": "Beds",
+    "19": "Beds",
+    "20": "Beds",
+    "21": "Beds",
+    "22": "Butlers",
+    "23": "Custom",
+    "24": "Lui",
+    "25": "",
+    "30": "",
+    "32": "Partially assembled",
+    "33": "No",
+    "34": "Care based on linseed oil or beeswax protects wood and environment",
+    "101": "Mounting installation",
+    "102": "None",
+    "103": "Golden M",
+    "104": "exclusive",
+    "105": "AAA",
+    "106": "None",
+    "107": "",
+    "108": "",
+    "112": "",
+    "113": "",
+    "114": "",
+    "439": "",
+    "438": "",
+    "470": "",
+    "471": "",
+    "472": "",
+    "473": "",
+    "474": "",
+    "475": "",
+    "476": "",
+    "601": "",
+    "602": "",
+    "603": "",
+    "604": "",
+    "605": "",
+    "606": "",
+    "607": "",
+    "608": "",
+  };
+
+  const sampleArticleNames = [
+    "AMSTERDAM Grachtenhaus Schweifgiebel Höhe 19cm",
+    "AMSTERDAM Serviettenringe 4 Stück",
+    "ARCADE Tischdecke L 160 x B 160cm",
+    "ARCADE Tischdecke L 250 x B 160cm",
+    "ARCADE Tischdecke L 300 x B 160cm",
+    "ARCADE Tischläufer L 160 x B 50cm",
+    "AVA Decke L 200 x B 150cm",
+    "AVA Kissen L 50 x B 50cm",
+    "BANQUET Etagere 6-stufig Höhe 200cm",
+    "BOHEMIAN Kissen Blumen L 30 x B 50cm",
+    "BOHEMIAN Kissen Blumen L 40 x B 60cm",
+    "BOHEMIAN Kissen Blumen L 50 x B 50cm",
+    "CHELSEA Seifenschale L 11 x B 8cm",
+    "CHELSEA Seifenspender 450ml",
+    "CHELSEA Zahnputzbecher Höhe 10cm",
+    "COCOON Teelichthalter Höhe 13cm",
+    "COCOON Teelichthalter Höhe 13cm",
+    "CURVES Vase Höhe 14cm",
+    "CURVES Vase Höhe 24cm",
+    "GOLDEN GROVE Windlicht Tannen Höhe 16cm",
+    "GRID Etagere für Obst Höhe 30cm",
+    "MARBLE Kerzenhalter aus Marmor B 11 x H 14cm",
+    "MINE & YOURS Zahnbürstenhalter Höhe 5cm",
+    "MISTY Windlicht Höhe 10cm",
+    "MISTY Windlicht Höhe 10cm",
+    "PART Teelichthalter Lochstanzung Höhe 8cm",
+    "PART Teelichthalter Lochstanzung Höhe 8cm",
+    "PART Teelichthalter Lochstanzung Höhe 8cm",
+    "PEACE Kerze Peace Höhe 10cm",
+    "PEANUTS Dose First Aid Doctor L 18 x B 18cm",
+    "PEANUTS Tasse 380ml",
+    "PEARL Seifenschale L 14 x B 9cm",
+    "PEARL Seifenspender 370ml",
+    "PEARL Zahnputzbecher Höhe 10cm",
+    "RING FOR GIN Glocke Höhe 16cm",
+    "RING FOR WINE Glocke Höhe 16cm",
+    "ROAD TRIP Tasse Home 380ml",
+    "SOFT NEEDLE Kissen L 50 x B 50cm",
+    "STELLA Hängedekoration Stern Ø22cm",
+    "Stumpenkerzenhalter Höhe 21cm",
+    "VILLAGE Teelichthalter Höhe 13cm",
+    "WINE LOVER Flaschentasche 'Drinking Wine, Feeling Fine' L 30 x B 12cm",
+    "WINE LOVER Flaschentasche 'Wine Lover' L 30 x B 12cm",
+  ];
+
+  const dataRows = [];
+  for (let i = 0; i < 100; i++) {
+    const row = { ...sampleDataRow };
+    row["2"] = `${Math.floor(Math.random() * 1000000000)}-${Math.floor(
+      Math.random() * 1000000000
+    )}`;
+    row["29"] =
+      sampleArticleNames[Math.floor(Math.random() * sampleArticleNames.length)];
+    row.mainImage = getRandomMainImage();
+    row["3"] = `2010003${Math.floor(Math.random() * 1000) + 1}1705`;
+    row["4"] = Math.floor(Math.random() * 100) + 1;
+    row["5"] = Math.random() > 0.5 ? "USD" : "EUR";
+    row.assets = assets;
+    dataRows.push(row);
+  }
+  return dataRows;
 }
 
 export function useTemplateData(): {
-  columnDefs: ColDef[];
+  columnDefs: ColumnType[];
   rowData: Record<string, unknown>[];
 } {
-  const [rowData, setRowData] = useState(rows);
+  const [rowData, setRowData] = useState(createDataRows());
 
-  const columnDefs = useMemo(() => {
-    const columns: (ColDef | ColGroupDef)[] = [
+  const columnDefinitions = useMemo(
+    () => [
       {
-        headerName: "Medal Details",
+        key: 2,
+        pinned: "left",
+        width: 50,
+        editable: false,
+        cellRenderer: MainImageCellRenderer,
+        cellClass:
+          "!p-0 flex flex-col items-center justify-center !border-0 !w-[50px]",
+        description: "",
+        mainMenuItems: [],
+        filter: false,
+      },
+      {
+        description: "Article",
         children: [
           {
-            headerName: "Lieferanten GLN/ILN",
-            field: "lieferantenGlnIl",
-            type: "text",
-            editable: true,
+            key: 2,
+            description: "Number",
+            cellRenderer: "agGroupCellRenderer",
+            pinned: "left",
+            filter: "agSetColumnFilter",
+            width: 170,
+          },
+          {
+            key: 29,
+            description: "Name",
+            pinned: "left",
+            filter: "agSetColumnFilter",
+            width: 170,
+          },
+          {
+            key: 3,
+            description: "EAN",
             pinned: "left",
             width: 170,
-            cellRenderer: "agGroupCellRenderer",
-            sortable: true,
-            mainMenuItems: [
-              {
-                name: "Apply 'Keine GLN vorhanden' for empty",
-                action: () => {
-                  setRowData((prevRowData) => {
-                    const newRowData = [...prevRowData];
-                    return newRowData.map((row) => {
-                      if (row.lieferantenGlnIl === "") {
-                        return {
-                          ...row,
-                          lieferantenGlnIl: "Keine GLN vorhanden",
-                        };
-                      }
-                      return row;
-                    });
-                  });
-                  return true;
-                },
-              },
-              "autoSizeThis",
-            ],
-          },
-          {
-            headerName: "Artikelnummer",
-            field: "artikelnummer",
-            type: "text",
-            editable: true,
-            pinned: "left",
-            width: 140,
-          },
-          {
-            headerName: "Artikelname",
-            field: "artikelname",
-            type: "text",
-            editable: true,
-            pinned: "left",
-            width: 120,
-          },
-          {
-            headerName: "Artikel EAN",
-            field: "artikelEan",
-            type: "text",
-            editable: true,
-            sortable: true,
             filter: "agSetColumnFilter",
-            // filterParams: defaultFilterParams,
             mainMenuItems: [
               {
                 name: "Apply 'Keine EAN vorhanden' for empty",
@@ -235,10 +374,10 @@ export function useTemplateData(): {
                   setRowData((prevRowData) => {
                     const newRowData = [...prevRowData];
                     return newRowData.map((row) => {
-                      if (row.artikelEan === "") {
+                      if (!row["3"]) {
                         return {
                           ...row,
-                          artikelEan: "Keine EAN vorhanden",
+                          "3": "Keine EAN vorhanden",
                         };
                       }
                       return row;
@@ -247,416 +386,426 @@ export function useTemplateData(): {
                   return true;
                 },
               },
-              "autoSizeThis",
+            ],
+          },
+        ],
+      },
+
+      {
+        description: "General Infos and Prices",
+        children: [
+          {
+            key: 4,
+            description: "RRP",
+          },
+          {
+            key: 5,
+            description: "Warehouse order currency",
+            type: "option",
+            options: [
+              { value: "USD", label: "USD" },
+              { value: "EUR", label: "EUR" },
             ],
           },
           {
-            headerName: "UVP",
-            field: "uvp",
-            type: "text",
-            editable: true,
+            key: 6,
+            description: "Warehouse purchase",
           },
           {
-            headerName: "Bestellwährung Lager",
-            field: "bestellwahrungLager",
-            type: "text",
-            editable: true,
+            key: 7,
+            description: "Customer individual order currency",
+            type: "option",
+            options: [
+              { value: "USD", label: "USD" },
+              { value: "EUR", label: "EUR" },
+            ],
           },
           {
-            headerName:
-              "Einkaufspreis Lager Immer Fakturapreise; auszufüllen, wenn Lagerware",
-            field: "einkaufspreisLager",
-            type: "text",
-            editable: true,
+            key: 8,
+            description: "Customer individual order purchase price",
           },
           {
-            headerName: "Bestellwährung Kundeneinzelbestellung",
-            field: "bestellwahrungKundeneinzelbestellung",
-            type: "text",
-            editable: true,
+            key: 9,
+            description: "Dropshipping order currency",
+            type: "option",
+            options: [
+              { value: "USD", label: "USD" },
+              { value: "EUR", label: "EUR" },
+            ],
           },
           {
-            headerName:
-              "Einkaufspreis Kundeneinzelbestellung Immer Fakturapreise; auszufüllen, wenn Hersteller die Lieferung über das home24 Lager abwickelt",
-            field:
-              "Einkaufspreis Kundeneinzelbestellung Immer Fakturapreise; auszufüllen, wenn Hersteller die Lieferung über das home24 Lager abwickelt",
-            type: "text",
-            editable: true,
+            key: 10,
+            description: "Dropshipping purchase price",
           },
           {
-            headerName: "Bestellwährung Strecke",
-            field: "bestellwahrungStrecke",
-            type: "text",
-            editable: true,
+            key: 11,
+            description: "Self Sender Capable",
           },
           {
-            headerName:
-              "Einkaufspreis Strecke Immer Fakturapreise; auszufüllen, wenn Hersteller Ware selber versendet",
-            field:
-              "Einkaufspreis Strecke Immer Fakturapreise; auszufüllen, wenn Hersteller Ware selber versendet",
-            type: "text",
-            editable: true,
+            description: "Self Sender Costs",
+            children: [
+              {
+                key: 12,
+                description: "DE",
+                width: 100,
+              },
+              {
+                key: 13,
+                description: "FR",
+                width: 100,
+              },
+              {
+                key: 14,
+                description: "NL",
+                width: 100,
+              },
+              {
+                key: 15,
+                description: "AT",
+                width: 100,
+              },
+              {
+                key: 16,
+                description: "CH",
+                width: 100,
+              },
+              {
+                key: 17,
+                description: "BE",
+                width: 100,
+              },
+              {
+                key: 18,
+                description: "IT",
+                width: 100,
+              },
+            ],
           },
           {
-            headerName: "Eigenversandfähig",
-            field: "eigenversandfahig",
-            type: "text",
-            editable: true,
+            key: 19,
+            description: "Type Min Order Qty",
           },
           {
-            headerName: "Selfsenderkosten DE",
-            field: "selfsenderkostenDe",
-            type: "text",
-            editable: true,
+            key: 20,
+            description: "Value Min Order Qty",
           },
           {
-            headerName: "Selfsenderkosten FR",
-            field: "selfsenderkostenFr",
-            type: "text",
-            editable: true,
+            key: 21,
+            description: "Min Order Value Currency",
+            type: "option",
+            options: [
+              { value: "USD", label: "USD" },
+              { value: "EUR", label: "EUR" },
+            ],
           },
           {
-            headerName: "Selfsenderkosten NL",
-            field: "selfsenderkostenNl",
-            type: "text",
-            editable: true,
+            key: 22,
+            description: "Number of Parts in Set",
+            type: "option",
+            options: [
+              {
+                value: "2",
+                label: "2 parts",
+              },
+              {
+                value: "3",
+                label: "3 parts",
+              },
+              {
+                value: "4",
+                label: "4 parts",
+              },
+              {
+                value: "5",
+                label: "5 parts",
+              },
+            ],
           },
           {
-            headerName: "Selfsenderkosten AT",
-            field: "selfsenderkostenAt",
-            type: "text",
-            editable: true,
+            key: 32,
+            description: "Delivery time to H24 (days)",
           },
           {
-            headerName: "Selfsenderkosten CH",
-            field: "selfsenderkostenCh",
-            type: "text",
-            editable: true,
+            key: 33,
+            description: "Serial number obligatory",
+            type: "option",
+            options: [
+              {
+                value: "Yes",
+                label: "Yes",
+              },
+              {
+                value: "No",
+                label: "No",
+              },
+            ],
           },
           {
-            headerName: "Selfsenderkosten BE",
-            field: "selfsenderkostenBe",
-            type: "text",
-            editable: true,
+            key: 34,
+            description: "Incoterms",
+            type: "option",
+            options: [
+              {
+                value: "DDP",
+                label: "DDP",
+              },
+              {
+                value: "EXW",
+                label: "EXW",
+              },
+              {
+                value: "FCA",
+                label: "FCA",
+              },
+            ],
           },
           {
-            headerName: "Selfsenderkosten IT",
-            field: "selfsenderkostenIt",
-            type: "text",
-            editable: true,
+            key: 23,
+            description: "Product Group 1",
+            type: "option",
+            options: [
+              { value: "Beds", label: "Beds" },
+              { value: "Bathroom furniture", label: "Bathroom furniture" },
+              { value: "Bedroom Furniture", label: "Bedroom Furniture" },
+              { value: "Boutique", label: "Boutique" },
+              { value: "Carpets & Flooring", label: "Carpets & Flooring" },
+              { value: "Children", label: "Children" },
+              { value: "Dining Tables", label: "Dining Tables" },
+              {
+                value: "Dining chair&benches",
+                label: "Dining chair&benches",
+              },
+              { value: "Fabric sample", label: "Fabric sample" },
+              { value: "Garden", label: "Garden" },
+              { value: "Hallway Furniture", label: "Hallway Furniture" },
+              { value: "Home Textiles", label: "Home Textiles" },
+              { value: "Household", label: "Household" },
+              { value: "Kitchen", label: "Kitchen" },
+              { value: "Lighting", label: "Lighting" },
+              {
+                value: "Living room furniture",
+                label: "Living room furniture",
+              },
+              {
+                value: "Mattresses & slatted frames",
+                label: "Mattresses & slatted frames",
+              },
+              { value: "Office", label: "Office" },
+              { value: "Service", label: "Service" },
+              { value: "Spare Parts", label: "Spare Parts" },
+              { value: "Upholstery", label: "Upholstery" },
+            ],
           },
           {
-            headerName: "Art Mindesbestellmenge",
-            field: "artMindesbestellmenge",
-            type: "text",
-            editable: true,
+            key: 24,
+            description: "Product Group 2",
+            type: "option",
+            options: [
+              { value: "Accessories", label: "Accessories" },
+              { value: "Armchairs", label: "Armchairs" },
+              { value: "Baby accessories", label: "Baby accessories" },
+              { value: "Baby furniture", label: "Baby furniture" },
+              {
+                value: "Baby furniture accessories",
+                label: "Baby furniture accessories",
+              },
+              { value: "Baby toys", label: "Baby toys" },
+              { value: "Baking dishes", label: "Baking dishes" },
+              { value: "Baking tools", label: "Baking tools" },
+              { value: "Bar", label: "Bar" },
+              { value: "Bar Set", label: "Bar Set" },
+              { value: "Bar Stools", label: "Bar Stools" },
+              { value: "Bar Tables", label: "Bar Tables" },
+              { value: "Bar gadgets", label: "Bar gadgets" },
+              {
+                value: "Bath Mats & Carpets",
+                label: "Bath Mats & Carpets",
+              },
+              {
+                value: "Bathroom Accessories",
+                label: "Bathroom Accessories",
+              },
+              { value: "Bathroom Set", label: "Bathroom Set" },
+              {
+                value: "Bathroom cabinets",
+                label: "Bathroom cabinets",
+              },
+              {
+                value: "Bathroom furniture accessories",
+                label: "Bathroom furniture accessories",
+              },
+              { value: "Bathroom shelves", label: "Bathroom shelves" },
+              {
+                value: "Bed Benches & Bed Storage",
+                label: "Bed Benches & Bed Storage",
+              },
+              { value: "Bed Linen", label: "Bed Linen" },
+              { value: "Bed Sheets", label: "Bed Sheets" },
+              { value: "Bed covers & Plaids", label: "Bed covers & Plaids" },
+              { value: "Bed frames", label: "Bed frames" },
+              { value: "Bed-Couches", label: "Bed-Couches" },
+              {
+                value: "Bedroom Furniture Accessories",
+                label: "Bedroom Furniture Accessories",
+              },
+            ],
           },
           {
-            headerName: "Wert Mindestbestellmenge/-wert",
-            field: "wertMindestbestellmengeWert",
-            type: "text",
-            editable: true,
+            key: 25,
+            description: "Product Group 3",
           },
           {
-            headerName: "Währung Mindestbestellwert",
-            field: "wahrungMindestbestellwert",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Anzahl Teile im Set",
-            field: "anzahlTeileImSet",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Bereitstellungszeit (Tage)",
-            field: "bereitstellungszeitTage",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Serialnummernpflichtig",
-            field: "serialnummernpflichtig",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Warengruppe 1",
-            field: "warengruppe1",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Warengruppe 2",
-            field: "warengruppe2",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Warengruppe 3",
-            field: "warengruppe3",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Warengruppe 4",
-            field: "warengruppe4",
-            type: "text",
-            editable: true,
+            key: 30,
+            description: "Product Group 4",
           },
         ],
       },
-      {
-        headerName: "Zimmertyp",
-        field: "zimmertyp",
-        type: "text",
-        editable: true,
-      },
-      {
-        headerName: "Typ Textil",
-        field: "Typ Textil",
-        type: "text",
-        editable: true,
-      },
-      {
-        headerName: "Typ Möbelzubehör",
-        field: "Typ Möbelzubehör",
-        type: "text",
-        editable: true,
-      },
-      {
-        headerName: "Generelle Produktinfos",
-        children: [
-          {
-            headerName: "Marke",
-            field: "Marke",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Serie",
-            field: "Serie",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Designer",
-            field: "Designer",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Herstellergarantie (Jahre)",
-            field: "herstellergarantieJahre",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Lieferumfang",
-            field: "lieferumfang",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Lieferzustand",
-            field: "lieferzustand",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Ersatzteile lieferbar",
-            field: "ersatzteileLieferbar",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Pflegehinweis",
-            field: "pflegehinweis",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Montage",
-            field: "montage",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "Warnhinweise & Sicherheitsinformationen (z.B. für Kinder)",
-            field: "warnhinweiseSicherheitsinformationenZBFürKinder",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Zertifikate (z.B. GS, CE, TÜV)",
-            field: "zertifikateZBGSCE TÜV",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Prüfinstitut (z.B. TÜV Rheinland, SGS, Intertek)",
-            field: "prüfinstitutZBTÜV RheinlandSGS Intertek",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Prüfnummer",
-            field: "prüfnummer",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Qualitätsmerkmale (z.B. Öko-Tex, FSC)",
-            field: "qualitatsmerkmaleZBÖkoTexFSC",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Exklusivität",
-            field: "exklusivitat",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Content Cluster",
-            field: "contentCluster",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "USP",
-            field: "usp",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Name des Hersteller",
-            field: "nameDesHersteller",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "Postanschrift des Herstellers (z.B. Musterstraße 1, 12345 Musterstadt)",
-            field: "postanschriftDesHerstellerZBMusterstraße1,12345Musterstadt",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "E-Mail-Adresse oder URL des Herstellers (z.B. www.muster.de)",
-            field: "emailAdresseOderURLDesHerstellerZBMusterde",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "Name der in der EU verantwortlichen Person (z.B. Max Mustermann)",
-            field: "nameDerInDerEUVerantwortlichenPersonZBMaxMustermann",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "Postanschrift der in der EU verantwortlichen Person (z.B. Musterstraße 1, 12345 Musterstadt)",
-            field:
-              "postanschriftDerInDerEUVerantwortlichenPersonZBMusterstraße1,12345Musterstadt",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "E-Mail-Adresse oder URL der in der EU verantwortlichen Person (z.B. www.muster.de)",
-            field:
-              "emailAdresseOderURLDerInDerEUVerantwortlichenPersonZBMusterde",
-            type: "text",
-            editable: true,
-          },
-        ],
-      },
-      {
-        headerName: "Packstückdaten",
-        children: [
-          {
-            headerName: "Gesamtzahl aller Packstücke",
-            field: "gesamtzahlAllerPackstucke",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Packstückbezeichnung",
-            field: "packstuckbezeichnung",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Häufigkeit des Packstücks",
-            field: "haufigkeitDesPackstucks",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Packstück EAN",
-            field: "packstuckEan",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Länge des Packstücks (cm)",
-            field: "langeDesPackstucksCm",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Breite des Packstücks (cm)",
-            field: "breiteDesPackstucksCm",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Höhe des Packstücks (cm)",
-            field: "hoheDesPackstucksCm",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "Bruttogewicht des Packstücks (kg) Immer in kg angeben, auch wenn die Einheit g ist.",
-            field:
-              "bruttogewichtDesPackstucksKgImmerInKgAngebenAuchWennDieEinheitGIst",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "Nettogewicht des Packstücks (kg) Immer in kg angeben, auch wenn die Einheit g ist.",
-            field:
-              "nettogewichtDesPackstucksKgImmerInKgAngebenAuchWennDieEinheitGIst",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName: "Form des Packstücks",
-            field: "formDesPackstucks",
-            type: "text",
-            editable: true,
-          },
-          {
-            headerName:
-              "Art Umverpackung z.B. Karton, Folie, Palette, etc. Bitte keine Verpackungsmaße angeben.",
-            field:
-              "artUmverpackungZBKartonFoliePaletteEtcBitteKeineVerpackungsmasseAngeben",
-            type: "text",
-            editable: true,
-          },
-        ],
-      },
-    ];
 
-    return columns.map((column) => columnDataTranslation(column));
+      {
+        description: "General Product Infos",
+        children: [
+          {
+            key: 101,
+            description: "Brand",
+          },
+          {
+            key: 102,
+            description: "Series",
+          },
+          {
+            key: 103,
+            description: "Designer",
+          },
+          {
+            key: 104,
+            description: "Supplier Warranty (Years)",
+          },
+          {
+            key: 105,
+            description: "Delivery Scope",
+          },
+          {
+            key: 106,
+            description: "Delivery Condition",
+          },
+          {
+            key: 107,
+            description: "Spare parts deliverable",
+          },
+          {
+            key: 108,
+            description: "Care Instructions",
+          },
+          {
+            key: 112,
+            description: "Installation",
+          },
+          {
+            key: 476,
+            description: "Warnings and Safety Information",
+          },
+          {
+            key: 113,
+            description: "Certificates",
+          },
+          {
+            key: 380,
+            description: "Testing Institute",
+          },
+          {
+            key: 381,
+            description: "Test Number",
+          },
+          {
+            key: 114,
+            description: "Quality Attributes",
+          },
+          {
+            key: 706,
+            description: "Exclusivity",
+            type: "option",
+            options: [
+              { value: "Exclusive", label: "Exclusive" },
+              { value: "Non-exclusive", label: "Non-exclusive" },
+            ],
+          },
+          {
+            key: 439,
+            description: "Content Cluster",
+            type: "option",
+            options: [
+              { value: "AAA", label: "AAA" },
+              { value: "AA", label: "AA" },
+              { value: "A", label: "A" },
+            ],
+          },
+          {
+            key: 438,
+            description: "USP",
+          },
+          {
+            description: "Manufacturer",
+            children: [
+              {
+                key: 470,
+                description: "Name",
+              },
+              {
+                key: 471,
+                description: "Postal Address",
+              },
+              {
+                key: 472,
+                description: "Email",
+              },
+              {
+                description: "Person Responsible in EU",
+                children: [
+                  {
+                    key: 473,
+                    description: "Name",
+                  },
+                  {
+                    key: 474,
+                    description: "Postal Address",
+                  },
+                  {
+                    key: 475,
+                    description: "Email",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    []
+  );
+
+  const columnDefs = useMemo(() => {
+    return translateColumnDefinitions(columnDefinitions);
+  }, [columnDefinitions]);
+
+  console.log("columnDefs", columnDefs);
+  console.log("rowData", rowData);
+  return { columnDefs, rowData };
+}
+
+export function useParcelData() {
+  const parcelData = useMemo(() => {
+    const randomCount = Math.floor(Math.random() * 15) + 5;
+
+    if (randomCount === 10) {
+      return [];
+    }
+
+    return createRandomParcels(randomCount);
   }, []);
 
-  return { columnDefs, rowData };
+  const columnDefs = useMemo(() => {
+    return translateColumnDefinitions(parcelColumnDefinitions);
+  }, []);
+
+  return { columnDefs, parcelData };
 }
